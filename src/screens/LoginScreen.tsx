@@ -3,8 +3,8 @@ import {
   View, Text, TextInput, TouchableOpacity, Alert,
   ActivityIndicator, SafeAreaView, StyleSheet
 } from 'react-native';
-import { login, cadastrar } from '../utils/api';
-import type { Usuario } from '../types';
+import { login, cadastrar } from '../utils/apit';
+import type { Usuario } from '../utils/types';
 
 interface Props {
   onLogin: (user: Usuario) => void;

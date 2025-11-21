@@ -1,6 +1,6 @@
 import React from 'react';
 import { TouchableOpacity, Text, StyleSheet } from 'react-native';
-import type { Calendario } from '../types';
+import type { Calendario } from '../utils/types'
 
 interface Props {
   calendario: Calendario;

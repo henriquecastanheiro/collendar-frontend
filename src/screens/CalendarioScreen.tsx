@@ -3,10 +3,10 @@ import {
   View, Text, TouchableOpacity, FlatList, Alert,
   ActivityIndicator, SafeAreaView, StyleSheet, Modal, TextInput
 } from 'react-native';
-import { listarEventos, criarEvento, atualizarEvento, excluirEvento } from '../utils/api';
+import { listarEventos, criarEvento, atualizarEvento, excluirEvento } from '../utils/apit';
 import { formatarData } from '../utils/helpers';
 import { EventoCard } from '../components/EventoCard';
-import type { Calendario, Evento } from '../types';
+import type { Calendario, Evento } from '../utils/types';
 
 interface Props {
   calendario: Calendario;

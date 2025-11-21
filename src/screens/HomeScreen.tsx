@@ -3,11 +3,10 @@ import {
   View, Text, TouchableOpacity, FlatList, Alert,
   ActivityIndicator, SafeAreaView, StyleSheet, Modal, TextInput
 } from 'react-native';
-import { listarCalendarios, criarCalendario, atualizarCalendario, excluirCalendario, logout } from '../utils/api';
+import { listarCalendarios, criarCalendario, atualizarCalendario, excluirCalendario, logout } from '../utils/apit';
 import { CORES } from '../utils/helpers';
 import { CalendarioCard } from '../components/CalendarioCard';
-import type { Usuario, Calendario } from '../types';
-
+import type { Usuario, Calendario } from '../utils/types';
 interface Props {
   user: Usuario;
   onLogout: () => void;
