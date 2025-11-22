@@ -3,10 +3,11 @@ import { View, Text, StyleSheet, SafeAreaView, ScrollView, TouchableOpacity } fr
 import { EventoCard } from '../components/EventoCard';
 import { LoadingSpinner } from '../components/LoadingSpinner';
 import { mockEventos } from '../api/mockData';
-import type { Calendario, Evento } from '../types';
+import type { Calendario, Evento, Usuario } from '../types';
 
 interface CalendarioDetailScreenProps {
   calendario: Calendario;
+  user:Usuario
   onBack: () => void;
   onEdit: (calendario: Calendario) => void;
   onCreateEvento: () => void;
@@ -15,6 +16,7 @@ interface CalendarioDetailScreenProps {
 
 export const CalendarioDetailScreen = ({
   calendario,
+  user,
   onBack,
   onEdit,
   onCreateEvento,

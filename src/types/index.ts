@@ -11,6 +11,7 @@ export interface Calendario {
   cor: string;
   usuarioId: string;
   usuarioNome?: string;
+  ehProprietario?: boolean; // Indica se o usuário logado é o dono
 }
 
 export interface Evento {
@@ -25,4 +26,13 @@ export interface Evento {
   recorrente?: boolean;
   tipoRecorrencia?: 'DIARIA' | 'SEMANAL' | 'MENSAL' | 'ANUAL';
   calendarioId: string;
+}
+
+export interface Compartilhamento {
+  id: string;
+  calendarioId: string;
+  calendarioNome: string;
+  usuarioId: string;
+  usuarioNome: string;
+  permissao: 'VISUALIZAR' | 'EDITAR';
 }

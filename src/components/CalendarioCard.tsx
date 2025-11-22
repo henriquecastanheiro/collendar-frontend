@@ -13,8 +13,18 @@ export const CalendarioCard = ({ calendario, onPress }: CalendarioCardProps) => 
       <View style={[styles.dot, { backgroundColor: calendario.cor }]} />
     </View>
     <View style={styles.content}>
-      <Text style={styles.title}>{calendario.nome}</Text>
+      <View style={styles.titleRow}>
+        <Text style={styles.title}>{calendario.nome}</Text>
+        {!calendario.ehProprietario && (
+          <View style={styles.sharedBadge}>
+            <Text style={styles.sharedText}>👥</Text>
+          </View>
+        )}
+      </View>
       <Text style={styles.description}>{calendario.descricao}</Text>
+      {!calendario.ehProprietario && (
+        <Text style={styles.owner}>Por: {calendario.usuarioNome}</Text>
+      )}
     </View>
     <View style={[styles.indicator, { backgroundColor: calendario.cor }]} />
   </TouchableOpacity>
@@ -50,15 +60,35 @@ const styles = StyleSheet.create({
   content: {
     flex: 1
   },
+  titleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8
+  },
   title: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#1f2937',
-    marginBottom: 4
+    color: '#1f2937'
+  },
+  sharedBadge: {
+    backgroundColor: '#dbeafe',
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 8
+  },
+  sharedText: {
+    fontSize: 12
   },
   description: {
     fontSize: 14,
-    color: '#6b7280'
+    color: '#6b7280',
+    marginTop: 2
+  },
+  owner: {
+    fontSize: 12,
+    color: '#9ca3af',
+    marginTop: 4,
+    fontStyle: 'italic'
   },
   indicator: {
     width: 12,

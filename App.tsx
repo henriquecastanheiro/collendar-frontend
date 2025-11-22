@@ -6,9 +6,17 @@ import { HomeScreen } from './src/screens/HomeScreen';
 import { CalendarioDetailScreen } from './src/screens/CalendarioDetailScreen';
 import { CalendarioFormScreen } from './src/screens/CalendarioFormScreen';
 import { EventoFormScreen } from './src/screens/EventoFormScreen';
+import { CompartilharScreen } from './src/screens/CompartilharScreen';
 import type { Usuario, Calendario, Evento } from './src/types';
 
-type Screen = 'login' | 'register' | 'home' | 'calendarioDetail' | 'calendarioForm' | 'eventoForm';
+type Screen = 
+  | 'login' 
+  | 'register' 
+  | 'home' 
+  | 'calendarioDetail' 
+  | 'calendarioForm' 
+  | 'eventoForm'
+  | 'compartilhar';
 
 function Navigation() {
   const [user, setUser] = useState<Usuario | null>(null);
@@ -22,9 +30,9 @@ function Navigation() {
     if (newScreen === 'calendarioDetail') setSelectedCalendario(data);
     if (newScreen === 'calendarioForm') setEditingCalendario(data);
     if (newScreen === 'eventoForm') setEditingEvento(data);
+    if (newScreen === 'compartilhar') setSelectedCalendario(data);
   };
 
-  // Não autenticado
   if (!user) {
     if (screen === 'register') {
       return <RegisterScreen onRegister={() => {}} onGoToLogin={() => setScreen('login')} />;
@@ -32,16 +40,17 @@ function Navigation() {
     return <LoginScreen onLogin={setUser} onGoToRegister={() => setScreen('register')} />;
   }
 
-  // Autenticado
   switch (screen) {
     case 'calendarioDetail':
       return (
         <CalendarioDetailScreen
           calendario={selectedCalendario!}
+          user={user}
           onBack={() => navigate('home')}
           onEdit={(c) => navigate('calendarioForm', c)}
           onCreateEvento={() => navigate('eventoForm')}
           onEditEvento={(e) => navigate('eventoForm', e)}
+          onCompartilhar={(c) => navigate('compartilhar', c)}
         />
       );
     case 'calendarioForm':
@@ -59,6 +68,13 @@ function Navigation() {
           calendarioId={selectedCalendario?.id || ''}
           onSave={() => navigate('calendarioDetail', selectedCalendario)}
           onCancel={() => navigate('calendarioDetail', selectedCalendario)}
+        />
+      );
+    case 'compartilhar':
+      return (
+        <CompartilharScreen
+          calendario={selectedCalendario!}
+          onBack={() => navigate('calendarioDetail', selectedCalendario)}
         />
       );
     default:
