@@ -1,32 +1,47 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, SafeAreaView, ScrollView, TouchableOpacity } from 'react-native';
-import { Input } from '../components/Input';
-import { Button } from '../components/Button';
-import { mockUser } from '../api/mockData';
-import type { Usuario } from '../types';
+import React, { useState } from "react";
+import {
+  View,
+  Text,
+  StyleSheet,
+  SafeAreaView,
+  ScrollView,
+  TouchableOpacity,
+  Alert,
+} from "react-native";
+import { Input } from "../components/Input";
+import { Button } from "../components/Button";
+import { authService } from "../api/authService";
+import type { Usuario } from "../types";
 
 interface LoginScreenProps {
-  onLogin: (user: Usuario) => void;
+  onLogin: (user: Usuario, token: string) => void;
   onGoToRegister: () => void;
 }
 
 export const LoginScreen = ({ onLogin, onGoToRegister }: LoginScreenProps) => {
-  const [email, setEmail] = useState('joao@email.com');
-  const [senha, setSenha] = useState('123456');
+  const [email, setEmail] = useState("joao@email.com");
+  const [senha, setSenha] = useState("123456");
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
+  const [error, setError] = useState("");
 
-  const handleLogin = () => {
+  const handleLogin = async () => {
     if (!email || !senha) {
-      setError('Preencha todos os campos');
+      setError("Preencha todos os campos");
       return;
     }
+
     setLoading(true);
-    setError('');
-    setTimeout(() => {
+    setError("");
+
+    try {
+      const { token, usuario } = await authService.login(email, senha);
+      onLogin(usuario, token);
+    } catch (err: any) {
+      setError(err.message || "Erro ao fazer login");
+      Alert.alert("Erro", err.message || "Erro ao fazer login");
+    } finally {
       setLoading(false);
-      onLogin(mockUser);
-    }, 1000);
+    }
   };
 
   return (
@@ -62,7 +77,7 @@ export const LoginScreen = ({ onLogin, onGoToRegister }: LoginScreenProps) => {
             secureTextEntry
           />
           <Button onPress={handleLogin} disabled={loading}>
-            {loading ? 'Entrando...' : 'Entrar'}
+            {loading ? "Entrando..." : "Entrar"}
           </Button>
 
           <TouchableOpacity onPress={onGoToRegister} style={styles.link}>
@@ -79,65 +94,65 @@ export const LoginScreen = ({ onLogin, onGoToRegister }: LoginScreenProps) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#3788d8'
+    backgroundColor: "#3788d8",
   },
   scroll: {
     flexGrow: 1,
-    justifyContent: 'center',
-    padding: 20
+    justifyContent: "center",
+    padding: 20,
   },
   header: {
-    alignItems: 'center',
-    marginBottom: 40
+    alignItems: "center",
+    marginBottom: 40,
   },
   logo: {
     width: 64,
     height: 64,
-    backgroundColor: '#fff',
+    backgroundColor: "#fff",
     borderRadius: 16,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: 16
+    justifyContent: "center",
+    alignItems: "center",
+    marginBottom: 16,
   },
   logoText: {
-    fontSize: 32
+    fontSize: 32,
   },
   title: {
     fontSize: 28,
-    fontWeight: 'bold',
-    color: '#fff',
-    marginBottom: 4
+    fontWeight: "bold",
+    color: "#fff",
+    marginBottom: 4,
   },
   subtitle: {
     fontSize: 16,
-    color: '#fff',
-    opacity: 0.9
+    color: "#fff",
+    opacity: 0.9,
   },
   form: {
-    backgroundColor: '#fff',
+    backgroundColor: "#fff",
     borderRadius: 16,
-    padding: 24
+    padding: 24,
   },
   error: {
-    backgroundColor: '#fee2e2',
+    backgroundColor: "#fee2e2",
     padding: 12,
     borderRadius: 8,
-    marginBottom: 16
+    marginBottom: 16,
   },
   errorText: {
-    color: '#dc2626',
-    fontSize: 14
+    color: "#dc2626",
+    fontSize: 14,
   },
   link: {
     marginTop: 16,
-    alignItems: 'center'
+    alignItems: "center",
   },
   linkText: {
     fontSize: 14,
-    color: '#6b7280'
+    color: "#6b7280",
   },
   linkBold: {
-    color: '#3788d8',
-    fontWeight: '600'
-  }
+    color: "#3788d8",
+    fontWeight: "600",
+  },
 });

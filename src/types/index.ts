@@ -1,7 +1,7 @@
 export interface Usuario {
   id: string;
   nome: string;
-  email?: string;
+  email: string;
 }
 
 export interface Calendario {
@@ -11,7 +11,7 @@ export interface Calendario {
   cor: string;
   usuarioId: string;
   usuarioNome?: string;
-  ehProprietario?: boolean; // Indica se o usuário logado é o dono
+  ehProprietario?: boolean;
 }
 
 export interface Evento {

@@ -1,15 +1,23 @@
-import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, SafeAreaView, ScrollView, TouchableOpacity } from 'react-native';
-import { EventoCard } from '../components/EventoCard';
-import { LoadingSpinner } from '../components/LoadingSpinner';
-import { mockEventos } from '../api/mockData';
-import type { Calendario, Evento, Usuario } from '../types';
+import React, { useState, useEffect } from "react";
+import {
+  View,
+  Text,
+  StyleSheet,
+  SafeAreaView,
+  ScrollView,
+  TouchableOpacity,
+} from "react-native";
+import { EventoCard } from "../components/EventoCard";
+import { LoadingSpinner } from "../components/LoadingSpinner";
+import { mockEventos } from "../api/mockData";
+import type { Calendario, Evento, Usuario } from "../types";
 
 interface CalendarioDetailScreenProps {
   calendario: Calendario;
-  user:Usuario
+  user: Usuario;
   onBack: () => void;
   onEdit: (calendario: Calendario) => void;
+  onCompartilhar?: (calendario: Calendario) => void;
   onCreateEvento: () => void;
   onEditEvento: (evento: Evento) => void;
 }
@@ -19,8 +27,9 @@ export const CalendarioDetailScreen = ({
   user,
   onBack,
   onEdit,
+  onCompartilhar,
   onCreateEvento,
-  onEditEvento
+  onEditEvento,
 }: CalendarioDetailScreenProps) => {
   const [eventos, setEventos] = useState<Evento[]>([]);
   const [loading, setLoading] = useState(true);
@@ -46,9 +55,20 @@ export const CalendarioDetailScreen = ({
           <Text style={styles.title}>{calendario.nome}</Text>
           <Text style={styles.subtitle}>{calendario.descricao}</Text>
         </View>
-        <TouchableOpacity onPress={() => onEdit(calendario)} style={styles.editButton}>
+        <TouchableOpacity
+          onPress={() => onEdit(calendario)}
+          style={styles.editButton}
+        >
           <Text style={styles.editText}>✏️</Text>
         </TouchableOpacity>
+        {onCompartilhar && (
+          <TouchableOpacity
+            onPress={() => onCompartilhar(calendario)}
+            style={styles.editButton}
+          >
+            <Text style={styles.editText}>🔗</Text>
+          </TouchableOpacity>
+        )}
       </View>
 
       <View style={styles.sectionHeader}>
@@ -88,103 +108,103 @@ export const CalendarioDetailScreen = ({
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f9fafb'
+    backgroundColor: "#f9fafb",
   },
   header: {
-    backgroundColor: '#fff',
+    backgroundColor: "#fff",
     paddingHorizontal: 16,
     paddingVertical: 16,
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     borderBottomWidth: 1,
-    borderBottomColor: '#e5e7eb'
+    borderBottomColor: "#e5e7eb",
   },
   backButton: {
     padding: 8,
-    marginRight: 8
+    marginRight: 8,
   },
   backText: {
     fontSize: 24,
-    color: '#6b7280'
+    color: "#6b7280",
   },
   headerContent: {
-    flex: 1
+    flex: 1,
   },
   title: {
     fontSize: 20,
-    fontWeight: 'bold',
-    color: '#1f2937'
+    fontWeight: "bold",
+    color: "#1f2937",
   },
   subtitle: {
     fontSize: 14,
-    color: '#6b7280'
+    color: "#6b7280",
   },
   editButton: {
-    padding: 8
+    padding: 8,
   },
   editText: {
-    fontSize: 20
+    fontSize: 20,
   },
   sectionHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
     paddingHorizontal: 16,
     paddingVertical: 12,
-    backgroundColor: '#fff',
+    backgroundColor: "#fff",
     borderBottomWidth: 1,
-    borderBottomColor: '#e5e7eb'
+    borderBottomColor: "#e5e7eb",
   },
   sectionTitle: {
     fontSize: 16,
-    fontWeight: '600',
-    color: '#374151'
+    fontWeight: "600",
+    color: "#374151",
   },
   eventCount: {
     fontSize: 14,
-    color: '#6b7280'
+    color: "#6b7280",
   },
   content: {
     flex: 1,
-    padding: 16
+    padding: 16,
   },
   list: {
-    paddingBottom: 80
+    paddingBottom: 80,
   },
   empty: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    paddingVertical: 80
+    justifyContent: "center",
+    alignItems: "center",
+    paddingVertical: 80,
   },
   emptyIcon: {
     fontSize: 48,
     marginBottom: 8,
-    opacity: 0.5
+    opacity: 0.5,
   },
   emptyText: {
     fontSize: 16,
-    color: '#9ca3af'
+    color: "#9ca3af",
   },
   fab: {
-    position: 'absolute',
+    position: "absolute",
     bottom: 24,
     right: 24,
     width: 56,
     height: 56,
-    backgroundColor: '#3788d8',
+    backgroundColor: "#3788d8",
     borderRadius: 28,
-    justifyContent: 'center',
-    alignItems: 'center',
-    shadowColor: '#000',
+    justifyContent: "center",
+    alignItems: "center",
+    shadowColor: "#000",
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 8,
-    elevation: 8
+    elevation: 8,
   },
   fabText: {
     fontSize: 32,
-    color: '#fff',
-    fontWeight: '300'
-  }
+    color: "#fff",
+    fontWeight: "300",
+  },
 });
