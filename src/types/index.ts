@@ -9,6 +9,8 @@ export interface Calendario {
   nome: string;
   descricao?: string;
   cor: string;
+  usuarioId: string;
+  usuarioNome?: string;
 }
 
 export interface Evento {
@@ -19,6 +21,8 @@ export interface Evento {
   dataFim: string;
   local?: string;
   cor?: string;
+  diaInteiro?: boolean;
   recorrente?: boolean;
-  tipoRecorrencia?: string;
+  tipoRecorrencia?: 'DIARIA' | 'SEMANAL' | 'MENSAL' | 'ANUAL';
+  calendarioId: string;
 }

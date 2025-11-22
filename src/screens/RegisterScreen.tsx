@@ -2,30 +2,26 @@ import React, { useState } from 'react';
 import { View, Text, StyleSheet, SafeAreaView, ScrollView, TouchableOpacity } from 'react-native';
 import { Input } from '../components/Input';
 import { Button } from '../components/Button';
-import { mockUser } from '../api/mockData';
-import type { Usuario } from '../types';
 
-interface LoginScreenProps {
-  onLogin: (user: Usuario) => void;
-  onGoToRegister: () => void;
+interface RegisterScreenProps {
+  onRegister: () => void;
+  onGoToLogin: () => void;
 }
 
-export const LoginScreen = ({ onLogin, onGoToRegister }: LoginScreenProps) => {
-  const [email, setEmail] = useState('joao@email.com');
-  const [senha, setSenha] = useState('123456');
+export const RegisterScreen = ({ onRegister, onGoToLogin }: RegisterScreenProps) => {
+  const [nome, setNome] = useState('');
+  const [email, setEmail] = useState('');
+  const [senha, setSenha] = useState('');
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
+  const [success, setSuccess] = useState(false);
 
-  const handleLogin = () => {
-    if (!email || !senha) {
-      setError('Preencha todos os campos');
-      return;
-    }
+  const handleRegister = () => {
+    if (!nome || !email || !senha) return;
     setLoading(true);
-    setError('');
     setTimeout(() => {
       setLoading(false);
-      onLogin(mockUser);
+      setSuccess(true);
+      setTimeout(onGoToLogin, 1500);
     }, 1000);
   };
 
@@ -33,20 +29,18 @@ export const LoginScreen = ({ onLogin, onGoToRegister }: LoginScreenProps) => {
     <SafeAreaView style={styles.container}>
       <ScrollView contentContainerStyle={styles.scroll}>
         <View style={styles.header}>
-          <View style={styles.logo}>
-            <Text style={styles.logoText}>📅</Text>
-          </View>
-          <Text style={styles.title}>Collendar</Text>
-          <Text style={styles.subtitle}>Calendário Compartilhado</Text>
+          <Text style={styles.title}>Criar Conta</Text>
+          <Text style={styles.subtitle}>Cadastre-se no Collendar</Text>
         </View>
 
-        {error ? (
-          <View style={styles.error}>
-            <Text style={styles.errorText}>{error}</Text>
+        {success && (
+          <View style={styles.success}>
+            <Text style={styles.successText}>✅ Conta criada! Redirecionando...</Text>
           </View>
-        ) : null}
+        )}
 
         <View style={styles.form}>
+          <Input label="Nome" value={nome} onChangeText={setNome} placeholder="Seu nome" />
           <Input
             label="Email"
             value={email}
@@ -61,13 +55,13 @@ export const LoginScreen = ({ onLogin, onGoToRegister }: LoginScreenProps) => {
             placeholder="••••••"
             secureTextEntry
           />
-          <Button onPress={handleLogin} disabled={loading}>
-            {loading ? 'Entrando...' : 'Entrar'}
+          <Button onPress={handleRegister} disabled={loading}>
+            {loading ? 'Criando...' : 'Criar Conta'}
           </Button>
 
-          <TouchableOpacity onPress={onGoToRegister} style={styles.link}>
+          <TouchableOpacity onPress={onGoToLogin} style={styles.link}>
             <Text style={styles.linkText}>
-              Não tem conta? <Text style={styles.linkBold}>Criar conta</Text>
+              Já tem conta? <Text style={styles.linkBold}>Entrar</Text>
             </Text>
           </TouchableOpacity>
         </View>
@@ -90,18 +84,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 40
   },
-  logo: {
-    width: 64,
-    height: 64,
-    backgroundColor: '#fff',
-    borderRadius: 16,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: 16
-  },
-  logoText: {
-    fontSize: 32
-  },
   title: {
     fontSize: 28,
     fontWeight: 'bold',
@@ -118,15 +100,16 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     padding: 24
   },
-  error: {
-    backgroundColor: '#fee2e2',
+  success: {
+    backgroundColor: '#d1fae5',
     padding: 12,
     borderRadius: 8,
     marginBottom: 16
   },
-  errorText: {
-    color: '#dc2626',
-    fontSize: 14
+  successText: {
+    color: '#065f46',
+    fontSize: 14,
+    textAlign: 'center'
   },
   link: {
     marginTop: 16,

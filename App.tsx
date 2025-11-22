@@ -1,83 +1,85 @@
-import React, { useState, useEffect } from 'react';
-import { View, ActivityIndicator, StyleSheet } from 'react-native';
-import { LoginScreen } from './screens/LoginScreen';
-import { HomeScreen } from './screens/HomeScreen';
-import { CalendarioScreen } from './screens/CalendarioScreen';
-import { restaurarSessao, logout } from './utils/api';
-import type { Usuario, Calendario } from './types';
+import React, { useState } from 'react';
+import { AuthProvider } from './src/context/AuthContext';
+import { LoginScreen } from './src/screens/LoginScreen';
+import { RegisterScreen } from './src/screens/RegisterScreen';
+import { HomeScreen } from './src/screens/HomeScreen';
+import { CalendarioDetailScreen } from './src/screens/CalendarioDetailScreen';
+import { CalendarioFormScreen } from './src/screens/CalendarioFormScreen';
+import { EventoFormScreen } from './src/screens/EventoFormScreen';
+import type { Usuario, Calendario, Evento } from './src/types';
 
-export default function App() {
+type Screen = 'login' | 'register' | 'home' | 'calendarioDetail' | 'calendarioForm' | 'eventoForm';
+
+function Navigation() {
   const [user, setUser] = useState<Usuario | null>(null);
-  const [calendarioAtual, setCalendarioAtual] = useState<Calendario | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [screen, setScreen] = useState<Screen>('login');
+  const [selectedCalendario, setSelectedCalendario] = useState<Calendario | null>(null);
+  const [editingCalendario, setEditingCalendario] = useState<Calendario | null>(null);
+  const [editingEvento, setEditingEvento] = useState<Evento | null>(null);
 
-  // Restaurar sessão ao iniciar
-  useEffect(() => {
-    (async () => {
-      const usuario = await restaurarSessao();
-      if (usuario) {
-        setUser(usuario);
-      }
-      setLoading(false);
-    })();
-  }, []);
-
-  // Handlers
-  const handleLogin = (usuario: Usuario) => {
-    setUser(usuario);
+  const navigate = (newScreen: Screen, data: any = null) => {
+    setScreen(newScreen);
+    if (newScreen === 'calendarioDetail') setSelectedCalendario(data);
+    if (newScreen === 'calendarioForm') setEditingCalendario(data);
+    if (newScreen === 'eventoForm') setEditingEvento(data);
   };
 
-  const handleLogout = () => {
-    setUser(null);
-    setCalendarioAtual(null);
-  };
-
-  const abrirCalendario = (calendario: Calendario) => {
-    setCalendarioAtual(calendario);
-  };
-
-  const voltarParaHome = () => {
-    setCalendarioAtual(null);
-  };
-
-  // Loading inicial
-  if (loading) {
-    return (
-      <View style={styles.center}>
-        <ActivityIndicator size="large" color="#3788d8" />
-      </View>
-    );
-  }
-
-  // Não autenticado - mostra login
+  // Não autenticado
   if (!user) {
-    return <LoginScreen onLogin={handleLogin} />;
+    if (screen === 'register') {
+      return <RegisterScreen onRegister={() => {}} onGoToLogin={() => setScreen('login')} />;
+    }
+    return <LoginScreen onLogin={setUser} onGoToRegister={() => setScreen('register')} />;
   }
 
-  // Autenticado - mostra home ou calendário
-  if (calendarioAtual) {
-    return (
-      <CalendarioScreen
-        calendario={calendarioAtual}
-        onVoltar={voltarParaHome}
-      />
-    );
+  // Autenticado
+  switch (screen) {
+    case 'calendarioDetail':
+      return (
+        <CalendarioDetailScreen
+          calendario={selectedCalendario!}
+          onBack={() => navigate('home')}
+          onEdit={(c) => navigate('calendarioForm', c)}
+          onCreateEvento={() => navigate('eventoForm')}
+          onEditEvento={(e) => navigate('eventoForm', e)}
+        />
+      );
+    case 'calendarioForm':
+      return (
+        <CalendarioFormScreen
+          calendario={editingCalendario}
+          onSave={() => navigate('home')}
+          onCancel={() => navigate('home')}
+        />
+      );
+    case 'eventoForm':
+      return (
+        <EventoFormScreen
+          evento={editingEvento}
+          calendarioId={selectedCalendario?.id || ''}
+          onSave={() => navigate('calendarioDetail', selectedCalendario)}
+          onCancel={() => navigate('calendarioDetail', selectedCalendario)}
+        />
+      );
+    default:
+      return (
+        <HomeScreen
+          user={user}
+          onLogout={() => {
+            setUser(null);
+            setScreen('login');
+          }}
+          onSelectCalendario={(c) => navigate('calendarioDetail', c)}
+          onCreateCalendario={() => navigate('calendarioForm')}
+        />
+      );
   }
-
-  return (
-    <HomeScreen
-      user={user}
-      onLogout={handleLogout}
-      onAbrirCalendario={abrirCalendario}
-    />
-  );
 }
 
-const styles = StyleSheet.create({
-  center: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: '#f5f5f5',
-  },
-});
+export default function App() {
+  return (
+    <AuthProvider>
+      <Navigation />
+    </AuthProvider>
+  );
+}
