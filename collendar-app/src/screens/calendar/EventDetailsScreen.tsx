@@ -35,14 +35,14 @@ const EventDetailsScreen: React.FC<Props> = ({ route, navigation }) => {
         api
           .get<Evento>(`/eventos/${eventoId}`)
           .then((res) =>
-            api.get<boolean>(
-              `/calendarios/${res.data.calendarioId}/posso-editar`
-            )
+            api.get(`/calendarios/${res.data.calendarioId}/posso-editar`)
           ),
       ]);
 
       setEvento(eventoResponse.data);
-      setPodeEditar(permissaoResponse.data);
+      setPodeEditar(
+        permissaoResponse.data === true || permissaoResponse.data === "true"
+      );
     } catch (error) {
       Alert.alert("Erro", getErrorMessage(error));
       navigation.goBack();

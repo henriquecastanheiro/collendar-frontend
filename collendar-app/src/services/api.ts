@@ -2,47 +2,57 @@ import axios from "axios";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const api = axios.create({
-  baseURL: "http://192.168.25.29:8081",
+  baseURL: "http://192.168.25.20:8081",
   timeout: 10000,
   headers: {
     "Content-Type": "application/json",
   },
 });
 
-// Interceptor para adicionar token em todas as requisições
+// Converte TUDO que for "true"/"false" string para boolean real
+const fixBooleans = (obj: any): any => {
+  if (obj === "true") return true;
+  if (obj === "false") return false;
+  if (obj === null || obj === undefined) return obj;
+  if (typeof obj !== "object") return obj;
+
+  if (Array.isArray(obj)) {
+    return obj.map(fixBooleans);
+  }
+
+  const fixed: any = {};
+  for (const key in obj) {
+    fixed[key] = fixBooleans(obj[key]);
+  }
+  return fixed;
+};
+
+// Adiciona token
 api.interceptors.request.use(
   async (config) => {
-    try {
-      const token = await AsyncStorage.getItem("token");
-      if (token) {
-        config.headers.Authorization = `Bearer ${token}`;
-      }
-    } catch (error) {
-      console.error("Erro ao buscar token:", error);
+    const token = await AsyncStorage.getItem("token");
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
     }
     return config;
   },
-  (error) => {
-    return Promise.reject(error);
-  }
+  (error) => Promise.reject(error)
 );
 
-// Interceptor para tratar erros de autenticação
+// Corrige booleans e trata 401
 api.interceptors.response.use(
-  (response) => response,
+  (response) => {
+    response.data = fixBooleans(response.data);
+    return response;
+  },
   async (error) => {
     if (error.response?.status === 401) {
-      // Token expirado ou inválido - limpar storage
-      try {
-        await AsyncStorage.multiRemove([
-          "token",
-          "userId",
-          "userName",
-          "userEmail",
-        ]);
-      } catch (e) {
-        console.error("Erro ao limpar storage:", e);
-      }
+      await AsyncStorage.multiRemove([
+        "token",
+        "userId",
+        "userName",
+        "userEmail",
+      ]);
     }
     return Promise.reject(error);
   }
@@ -50,29 +60,21 @@ api.interceptors.response.use(
 
 export default api;
 
-// Funções auxiliares para lidar com erros
 export const getErrorMessage = (error: any): string => {
-  if (!error.response) {
-    return "Erro de conexão. Verifique sua internet.";
-  }
-
-  const status = error.response.status;
-  const message = error.response.data?.message || error.response.data?.error;
-
-  switch (status) {
+  if (!error.response) return "Sem conexão.";
+  const msg = error.response.data?.message || error.response.data?.error;
+  switch (error.response.status) {
     case 400:
-      return message || "Dados inválidos. Verifique os campos.";
+      return msg || "Dados inválidos.";
     case 401:
-      return "Sessão expirada. Faça login novamente.";
+      return "Sessão expirada.";
     case 403:
-      return "Você não tem permissão para esta ação.";
+      return "Sem permissão.";
     case 404:
-      return "Recurso não encontrado.";
-    case 409:
-      return message || "Conflito. Este recurso já existe.";
+      return "Não encontrado.";
     case 500:
-      return "Erro no servidor. Tente novamente mais tarde.";
+      return "Erro no servidor.";
     default:
-      return message || "Ocorreu um erro. Tente novamente.";
+      return msg || "Erro.";
   }
 };

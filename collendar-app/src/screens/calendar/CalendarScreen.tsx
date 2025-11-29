@@ -100,10 +100,10 @@ const CalendarScreen: React.FC<Props> = ({ navigation }) => {
     if (!selectedCalendar) return;
 
     try {
-      const response = await api.get<boolean>(
-        `/calendarios/${selectedCalendar.id}/posso-editar`
-      );
-      setPodeEditar(response.data);
+const response = await api.get(
+  `/calendarios/${selectedCalendar.id}/posso-editar`
+);
+setPodeEditar(response.data === true || response.data === "true");
     } catch (error) {
       setPodeEditar(false);
     }
