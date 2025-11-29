@@ -1,102 +1,135 @@
 import axios from "axios";
-import AsyncStorage from "@react-native-async-storage/async-storage";
+
+// ⚠️ ALTERE PARA SEU IP
+// Emulador Android: 'http://10.0.2.2:8081'
+// Simulador iOS: 'http://localhost:8081'
+// Celular físico: 'http://SEU_IP:8081'
+const BASE_URL = "http://192.168.25.20:8081";
 
 const api = axios.create({
-  baseURL: "http://192.168.25.20:8081",
+  baseURL: BASE_URL,
   timeout: 10000,
-  headers: {
-    "Content-Type": "application/json",
-  },
+  headers: { "Content-Type": "application/json" },
 });
 
-// ✅ Converte QUALQUER coisa que pareça boolean
-const parseBoolean = (value: any): any => {
-  if (value === null || value === undefined) return value;
+let authToken: string | null = null;
 
-  // String booleans
-  if (value === "true") return true;
-  if (value === "false") return false;
-  if (value === "True") return true;
-  if (value === "False") return false;
-  if (value === "TRUE") return true;
-  if (value === "FALSE") return false;
-
-  // Números
-  if (value === 1) return true;
-  if (value === 0) return false;
-
-  return value;
+export const setAuthToken = (token: string | null) => {
+  authToken = token;
+  if (token) {
+    api.defaults.headers.common["Authorization"] = `Bearer ${token}`;
+  } else {
+    delete api.defaults.headers.common["Authorization"];
+  }
 };
 
-// ✅ Aplica recursivamente em TUDO
-const fixData = (data: any): any => {
-  if (data === null || data === undefined) return data;
+// ========== AUTH ==========
+export const authApi = {
+  login: (email: string, senha: string) =>
+    api.post("/auth/login", { email, senha }),
 
-  // Primitivos
-  if (typeof data !== "object") {
-    return parseBoolean(data);
-  }
-
-  // Arrays
-  if (Array.isArray(data)) {
-    return data.map(fixData);
-  }
-
-  // Objetos
-  const fixed: any = {};
-  for (const key in data) {
-    fixed[key] = fixData(data[key]);
-  }
-  return fixed;
+  register: (nome: string, email: string, senha: string) =>
+    api.post("/usuarios", { nome, email, senha }),
 };
 
-api.interceptors.request.use(
-  async (config) => {
-    const token = await AsyncStorage.getItem("token");
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
-    }
-    return config;
-  },
-  (error) => Promise.reject(error)
-);
+// ========== CALENDÁRIOS ==========
+export const calendarioApi = {
+  listar: () => api.get("/calendarios/acessiveis"),
 
-api.interceptors.response.use(
-  (response) => {
-    // ✅ FORÇA conversão de tudo
-    response.data = fixData(response.data);
-    return response;
-  },
-  async (error) => {
-    if (error.response?.status === 401) {
-      await AsyncStorage.multiRemove([
-        "token",
-        "userId",
-        "userName",
-        "userEmail",
-      ]);
-    }
-    return Promise.reject(error);
-  }
-);
+  criar: (nome: string, descricao?: string, cor?: string) =>
+    api.post("/calendarios", { nome, descricao, cor: cor || "#6366F1" }),
+
+  deletar: (id: string) => api.delete(`/calendarios/${id}`),
+};
+
+// ========== EVENTOS ==========
+export const eventoApi = {
+  listarPorCalendario: (calendarioId: string) =>
+    api.get(`/eventos/calendario/${calendarioId}`),
+
+  buscarPorPeriodo: (
+    calendarioId: string,
+    dataInicio: string,
+    dataFim: string
+  ) =>
+    api.get(`/eventos/calendario/${calendarioId}/periodo`, {
+      params: { dataInicio, dataFim },
+    }),
+
+  criar: (evento: EventoRequest) => api.post("/eventos", evento),
+
+  atualizar: (id: string, evento: EventoRequest) =>
+    api.put(`/eventos/${id}`, evento),
+
+  deletar: (id: string) => api.delete(`/eventos/${id}`),
+};
+
+// ========== COMPARTILHAMENTOS ==========
+export const compartilhamentoApi = {
+  listarPorCalendario: (calendarioId: string) =>
+    api.get(`/compartilhamentos/calendario/${calendarioId}`),
+
+  criar: (
+    calendarioId: string,
+    emailDestinatario: string,
+    permissao: "VISUALIZAR" | "EDITAR"
+  ) =>
+    api.post("/compartilhamentos", {
+      calendarioId,
+      emailDestinatario,
+      permissao,
+    }),
+
+  deletar: (id: string) => api.delete(`/compartilhamentos/${id}`),
+};
+
+// ========== TIPOS ==========
+export interface Usuario {
+  id: string;
+  nome: string;
+  email: string;
+}
+
+export interface Calendario {
+  id: string;
+  nome: string;
+  descricao: string | null;
+  cor: string;
+  usuarioId: string;
+  usuarioNome: string;
+  proprietario: boolean | null;
+  permissao: "VISUALIZAR" | "EDITAR" | null;
+}
+
+export interface Evento {
+  id: string;
+  titulo: string;
+  descricao: string | null;
+  dataInicio: string;
+  dataFim: string;
+  local: string | null;
+  cor: string | null;
+  diaInteiro: boolean;
+  calendarioId: string;
+}
+
+export interface EventoRequest {
+  titulo: string;
+  descricao?: string;
+  dataInicio: string;
+  dataFim: string;
+  local?: string;
+  cor?: string;
+  diaInteiro?: boolean;
+  calendarioId: string;
+}
+
+export interface Compartilhamento {
+  id: string;
+  calendarioId: string;
+  usuarioNome: string;
+  usuarioEmail: string;
+  permissao: "VISUALIZAR" | "EDITAR";
+}
 
 export default api;
-
-export const getErrorMessage = (error: any): string => {
-  if (!error.response) return "Sem conexão.";
-  const msg = error.response.data?.message || error.response.data?.error;
-  switch (error.response.status) {
-    case 400:
-      return msg || "Dados inválidos.";
-    case 401:
-      return "Sessão expirada.";
-    case 403:
-      return "Sem permissão.";
-    case 404:
-      return "Não encontrado.";
-    case 500:
-      return "Erro no servidor.";
-    default:
-      return msg || "Erro.";
-  }
-};
