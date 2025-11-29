@@ -59,9 +59,10 @@ const CalendarCard: React.FC<CalendarCardProps> = ({
             </Text>
           </View>
 
-          {isShared && calendario.proprietarioNome && (
+          {/* ✅ CORRIGIDO: usar usuarioNome em vez de proprietarioNome */}
+          {isShared && calendario.usuarioNome && (
             <Text style={styles.ownerText} numberOfLines={1}>
-              De: {calendario.proprietarioNome}
+              De: {calendario.usuarioNome}
             </Text>
           )}
         </View>

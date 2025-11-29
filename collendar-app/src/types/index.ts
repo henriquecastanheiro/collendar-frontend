@@ -4,7 +4,8 @@ export interface Usuario {
   id: string;
   nome: string;
   email: string;
-  dataCriacao?: string;
+  ativo?: boolean;
+  roles?: string[];
 }
 
 export interface LoginResponse {
@@ -16,14 +17,18 @@ export interface LoginResponse {
   roles: string[];
 }
 
+// ✅ CORRIGIDO: Alinhado com CalendarioResponseDTO do backend
 export interface Calendario {
   id: string;
   nome: string;
   descricao: string;
   cor: string;
-  proprietarioId: string;
-  proprietarioNome?: string;
-  dataCriacao?: string;
+  usuarioId: string; // ✅ Mudado de proprietarioId
+  usuarioNome?: string; // ✅ Mudado de proprietarioNome
+  createdAt?: string; // ✅ Adicionado
+  updatedAt?: string; // ✅ Adicionado
+  proprietario?: boolean; // ✅ Adicionado (indica se é dono)
+  permissao?: "VISUALIZAR" | "EDITAR" | null; // ✅ Adicionado
 }
 
 export interface Evento {
@@ -38,19 +43,19 @@ export interface Evento {
   recorrente: boolean;
   tipoRecorrencia?: "DIARIA" | "SEMANAL" | "MENSAL" | "ANUAL";
   calendarioId: string;
-  calendarioNome?: string;
+  calendarioNome: string; // ✅ Removido opcional (sempre vem do backend)
 }
 
+// ✅ CORRIGIDO: Alinhado com CompartilhamentoResponseDTO do backend
 export interface Compartilhamento {
   id: string;
   calendarioId: string;
   calendarioNome: string;
-  proprietarioNome: string;
-  destinatarioId: string;
-  destinatarioNome: string;
-  destinatarioEmail: string;
+  usuarioId: string; // ✅ Mudado de destinatarioId
+  usuarioNome: string; // ✅ Mudado de destinatarioNome
+  usuarioEmail: string; // ✅ Mudado de destinatarioEmail
   permissao: "VISUALIZAR" | "EDITAR";
-  dataCompartilhamento: string;
+  createdAt: string; // ✅ Mudado de dataCompartilhamento
 }
 
 export interface Permissao {

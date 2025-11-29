@@ -99,8 +99,9 @@ const CalendarDetailsScreen: React.FC<Props> = ({ route, navigation }) => {
   const renderShareItem = ({ item }: { item: Compartilhamento }) => (
     <View style={styles.shareItem}>
       <View style={styles.shareInfo}>
-        <Text style={styles.shareName}>{item.destinatarioNome}</Text>
-        <Text style={styles.shareEmail}>{item.destinatarioEmail}</Text>
+        {/* ✅ CORRIGIDO: usar usuarioNome e usuarioEmail */}
+        <Text style={styles.shareName}>{item.usuarioNome}</Text>
+        <Text style={styles.shareEmail}>{item.usuarioEmail}</Text>
         <Text style={styles.sharePermission}>
           {item.permissao === "EDITAR" ? "Pode editar" : "Visualização"}
         </Text>

@@ -9,25 +9,47 @@ const api = axios.create({
   },
 });
 
-// Converte TUDO que for "true"/"false" string para boolean real
-const fixBooleans = (obj: any): any => {
-  if (obj === "true") return true;
-  if (obj === "false") return false;
-  if (obj === null || obj === undefined) return obj;
-  if (typeof obj !== "object") return obj;
+// ✅ Converte QUALQUER coisa que pareça boolean
+const parseBoolean = (value: any): any => {
+  if (value === null || value === undefined) return value;
 
-  if (Array.isArray(obj)) {
-    return obj.map(fixBooleans);
+  // String booleans
+  if (value === "true") return true;
+  if (value === "false") return false;
+  if (value === "True") return true;
+  if (value === "False") return false;
+  if (value === "TRUE") return true;
+  if (value === "FALSE") return false;
+
+  // Números
+  if (value === 1) return true;
+  if (value === 0) return false;
+
+  return value;
+};
+
+// ✅ Aplica recursivamente em TUDO
+const fixData = (data: any): any => {
+  if (data === null || data === undefined) return data;
+
+  // Primitivos
+  if (typeof data !== "object") {
+    return parseBoolean(data);
   }
 
+  // Arrays
+  if (Array.isArray(data)) {
+    return data.map(fixData);
+  }
+
+  // Objetos
   const fixed: any = {};
-  for (const key in obj) {
-    fixed[key] = fixBooleans(obj[key]);
+  for (const key in data) {
+    fixed[key] = fixData(data[key]);
   }
   return fixed;
 };
 
-// Adiciona token
 api.interceptors.request.use(
   async (config) => {
     const token = await AsyncStorage.getItem("token");
@@ -39,10 +61,10 @@ api.interceptors.request.use(
   (error) => Promise.reject(error)
 );
 
-// Corrige booleans e trata 401
 api.interceptors.response.use(
   (response) => {
-    response.data = fixBooleans(response.data);
+    // ✅ FORÇA conversão de tudo
+    response.data = fixData(response.data);
     return response;
   },
   async (error) => {

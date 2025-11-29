@@ -1,132 +1,113 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import {
   View,
   Text,
-  TextInput,
   StyleSheet,
-  TouchableOpacity,
+  FlatList,
   Alert,
-  ActivityIndicator,
+  RefreshControl,
 } from "react-native";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
-import { Picker } from "@react-native-picker/picker";
+import { Ionicons } from "@expo/vector-icons";
 import api, { getErrorMessage } from "../../services/api";
-import {
-  MyCalendarsStackParamList,
-  CreateCompartilhamentoDTO,
-} from "../../types";
-import { Colors, Spacing, BorderRadius } from "../../constants/colors";
+import { SharedStackParamList, Compartilhamento } from "../../types";
+import { Colors, Spacing } from "../../constants/colors";
+import CalendarCard from "../../components/CalendarCard";
+import LoadingScreen from "../../components/LoadingCard";
 
-type Props = NativeStackScreenProps<MyCalendarsStackParamList, "ShareCalendar">;
+type Props = NativeStackScreenProps<
+  SharedStackParamList,
+  "SharedCalendarsMain"
+>;
 
-const ShareCalendarScreen: React.FC<Props> = ({ route, navigation }) => {
-  const { calendarioId } = route.params;
-  const [email, setEmail] = useState("");
-  const [permissao, setPermissao] = useState<"VISUALIZAR" | "EDITAR">(
-    "VISUALIZAR"
-  );
-  const [loading, setLoading] = useState(false);
+const SharedCalendarsScreen: React.FC<Props> = () => {
+  const [compartilhamentos, setCompartilhamentos] = useState<
+    Compartilhamento[]
+  >([]);
+  const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
 
-  const handleShare = async () => {
-    if (!email.trim() || !email.includes("@")) {
-      Alert.alert("Erro", "Email inválido");
-      return;
-    }
-    setLoading(true);
-    const data: CreateCompartilhamentoDTO = {
-      calendarioId,
-      emailDestinatario: email.trim(),
-      permissao,
-    };
+  useEffect(() => {
+    loadCompartilhamentos();
+  }, []);
+
+  const loadCompartilhamentos = async () => {
     try {
-      await api.post("/compartilhamentos", data);
-      Alert.alert("Sucesso", "Calendário compartilhado!");
-      navigation.goBack();
+      const response = await api.get<Compartilhamento[]>(
+        "/compartilhamentos/recebidos/detalhes" // ✅ Usar endpoint com detalhes
+      );
+      setCompartilhamentos(response.data);
     } catch (error) {
       Alert.alert("Erro", getErrorMessage(error));
     } finally {
       setLoading(false);
+      setRefreshing(false);
     }
   };
 
+  const onRefresh = useCallback(() => {
+    setRefreshing(true);
+    loadCompartilhamentos();
+  }, []);
+
+  const renderItem = ({ item }: { item: Compartilhamento }) => (
+    <CalendarCard
+      calendario={{
+        id: item.calendarioId,
+        nome: item.calendarioNome,
+        descricao: "",
+        cor: "#6366F1",
+        usuarioId: item.usuarioId, // ✅ CORRIGIDO
+        usuarioNome: item.usuarioNome, // ✅ CORRIGIDO
+      }}
+      onPress={() => {}}
+      isShared
+      permissao={item.permissao}
+    />
+  );
+
+  const renderEmpty = () => (
+    <View style={styles.emptyContainer}>
+      <Ionicons name="people-outline" size={64} color={Colors.textSecondary} />
+      <Text style={styles.emptyText}>Nenhum calendário compartilhado</Text>
+    </View>
+  );
+
+  if (loading) return <LoadingScreen />;
+
   return (
     <View style={styles.container}>
-      <View style={styles.content}>
-        <Text style={styles.label}>Email do usuário</Text>
-        <TextInput
-          style={styles.input}
-          placeholder="usuario@email.com"
-          value={email}
-          onChangeText={setEmail}
-          keyboardType="email-address"
-          autoCapitalize="none"
-          editable={!loading}
-        />
-
-        <Text style={styles.label}>Permissão</Text>
-        <View style={styles.pickerWrapper}>
-          <Picker
-            selectedValue={permissao}
-            onValueChange={setPermissao}
-            enabled={!loading}
-          >
-            <Picker.Item label="Visualização" value="VISUALIZAR" />
-            <Picker.Item label="Edição" value="EDITAR" />
-          </Picker>
-        </View>
-
-        <TouchableOpacity
-          style={[styles.button, loading && styles.buttonDisabled]}
-          onPress={handleShare}
-          disabled={loading}
-        >
-          {loading ? (
-            <ActivityIndicator color={Colors.card} />
-          ) : (
-            <Text style={styles.buttonText}>Compartilhar</Text>
-          )}
-        </TouchableOpacity>
-      </View>
+      <FlatList
+        data={compartilhamentos}
+        renderItem={renderItem}
+        keyExtractor={(item) => item.id}
+        ListEmptyComponent={renderEmpty}
+        contentContainerStyle={
+          compartilhamentos.length === 0 ? styles.emptyListContainer : undefined
+        }
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+        }
+      />
     </View>
   );
 };
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: Colors.background },
-  content: { padding: Spacing.md },
-  label: {
-    fontSize: 14,
-    fontWeight: "600",
-    color: Colors.text,
-    marginBottom: Spacing.sm,
-    marginTop: Spacing.md,
-  },
-  input: {
-    backgroundColor: Colors.card,
-    borderWidth: 1,
-    borderColor: Colors.border,
-    borderRadius: BorderRadius.md,
-    paddingHorizontal: Spacing.md,
-    paddingVertical: Spacing.md,
-    fontSize: 16,
-    color: Colors.text,
-  },
-  pickerWrapper: {
-    borderWidth: 1,
-    borderColor: Colors.border,
-    borderRadius: BorderRadius.md,
-    backgroundColor: Colors.card,
-    overflow: "hidden",
-  },
-  button: {
-    backgroundColor: Colors.primary,
-    borderRadius: BorderRadius.md,
-    paddingVertical: Spacing.md,
+  emptyListContainer: { flexGrow: 1 },
+  emptyContainer: {
+    flex: 1,
+    justifyContent: "center",
     alignItems: "center",
-    marginTop: Spacing.xl,
+    paddingHorizontal: Spacing.xl,
   },
-  buttonDisabled: { opacity: 0.6 },
-  buttonText: { color: Colors.card, fontSize: 16, fontWeight: "600" },
+  emptyText: {
+    fontSize: 16,
+    color: Colors.textSecondary,
+    marginTop: Spacing.md,
+    textAlign: "center",
+  },
 });
 
-export default ShareCalendarScreen;
+export default SharedCalendarsScreen;
