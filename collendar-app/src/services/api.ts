@@ -1,9 +1,6 @@
 import axios from "axios";
 
 // ⚠️ ALTERE PARA SEU IP
-// Emulador Android: 'http://10.0.2.2:8081'
-// Simulador iOS: 'http://localhost:8081'
-// Celular físico: 'http://SEU_IP:8081'
 const BASE_URL = "http://192.168.25.20:8081";
 
 const api = axios.create({

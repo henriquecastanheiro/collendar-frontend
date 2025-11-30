@@ -4,7 +4,9 @@ import React, {
   useState,
   useCallback,
   ReactNode,
+  useEffect,
 } from "react";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import {
   authApi,
   calendarioApi,
@@ -17,6 +19,9 @@ import {
   EventoRequest,
   Compartilhamento,
 } from "../services/api";
+
+const TOKEN_KEY = "@collendar:token";
+const USER_KEY = "@collendar:user";
 
 interface AppContextData {
   // Auth
@@ -76,7 +81,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({
   const [compartilhamentos, setCompartilhamentos] = useState<
     Compartilhamento[]
   >([]);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
 
   const hoje = new Date();
   const [mesAtual, setMesAtual] = useState({
@@ -84,13 +89,65 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({
     mes: hoje.getMonth(),
   });
 
+  // ========== PERSISTÊNCIA ==========
+  useEffect(() => {
+    loadStoredAuth();
+  }, []);
+
+  const loadStoredAuth = async () => {
+    try {
+      const [storedToken, storedUser] = await Promise.all([
+        AsyncStorage.getItem(TOKEN_KEY),
+        AsyncStorage.getItem(USER_KEY),
+      ]);
+
+      if (storedToken && storedUser) {
+        setAuthToken(storedToken);
+        setUser(JSON.parse(storedUser));
+      }
+    } catch (error) {
+      console.error("Erro ao carregar autenticação:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const saveAuth = async (token: string, userData: Usuario) => {
+    try {
+      await Promise.all([
+        AsyncStorage.setItem(TOKEN_KEY, token),
+        AsyncStorage.setItem(USER_KEY, JSON.stringify(userData)),
+      ]);
+    } catch (error) {
+      console.error("Erro ao salvar autenticação:", error);
+    }
+  };
+
+  const clearAuth = async () => {
+    try {
+      await Promise.all([
+        AsyncStorage.removeItem(TOKEN_KEY),
+        AsyncStorage.removeItem(USER_KEY),
+      ]);
+    } catch (error) {
+      console.error("Erro ao limpar autenticação:", error);
+    }
+  };
+
   // ========== AUTH ==========
   const login = async (email: string, senha: string) => {
     setIsLoading(true);
     try {
       const { data } = await authApi.login(email, senha);
+      const userData = {
+        id: data.usuarioId,
+        nome: data.nome,
+        email: data.email,
+      };
+
       setAuthToken(data.token);
-      setUser({ id: data.usuarioId, nome: data.nome, email: data.email });
+      setUser(userData);
+      await saveAuth(data.token, userData);
     } finally {
       setIsLoading(false);
     }
@@ -106,12 +163,13 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({
     }
   };
 
-  const logout = () => {
+  const logout = async () => {
     setUser(null);
     setAuthToken(null);
     setCalendarios([]);
     setCalendarioAtivo(null);
     setEventos([]);
+    await clearAuth();
   };
 
   // ========== CALENDÁRIOS ==========

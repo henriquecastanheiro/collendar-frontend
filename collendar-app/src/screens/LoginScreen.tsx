@@ -36,7 +36,7 @@ const LoginScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
       } else {
         await login(email.trim(), senha);
       }
-      navigation.replace("Home");
+      // Remova o navigation.replace - a navegação acontece automaticamente
     } catch (error: any) {
       Alert.alert(
         "Erro",
